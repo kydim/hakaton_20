@@ -1,4 +1,5 @@
 from sklearn.base import TransformerMixin
+import re
 
 class RegexTransformer(TransformerMixin):
     def __init__(self, regex, sub=''):
