@@ -15,6 +15,7 @@ import requests
 from googletrans import Translator
 from ibm_watson import VisualRecognitionV3
 from ibm_cloud_sdk_core.authenticators import IAMAuthenticator
+from math import sqrt
 
 nltk.download('stopwords')
 nltk.download('wordnet')
@@ -50,13 +51,31 @@ def get_all_metro_stations(metro_stations_json=None):
     return stations
 
 
-def get_metro_stations_from_text(text, metro_stations_json=None):
+def get_nearest_stations(station, threshold=0.06, metro_stations_json=None):
+    nearest = []
+    all_stations = get_all_metro_stations(metro_stations_json)
+    for current_station in all_stations:
+        if get_distance(current_station, station) < threshold:
+            nearest.append(current_station)
+    return nearest
+
+
+def get_metro_stations_from_text(text, city=None, single=False):
     found_stations = []
     metro_stations = get_all_metro_stations(metro_stations_json)
     for station in metro_stations:
         if station['name'].lower() in text.lower():
             found_stations.append(station)
+    if city is not None:
+        found_stations = list(filter(lambda x: city.lower() in x['city'].lower(), found_stations))
+    if single == True:
+        if len(found_stations) > 1:
+            found_stations = found_stations[:1]
     return found_stations
+
+
+def get_distance(one, two):
+    return sqrt((one['lat'] - two['lat']) ** 2 + (one['lng'] - two['lng']) ** 2)
 
 
 def classify_image_yandex(image_url):
