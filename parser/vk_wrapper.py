@@ -9,11 +9,14 @@ from time import sleep
 from config import (
     VK_TOKEN, VK_API_VERSION, VK_CLUBS
 )
+from parser.client import Client
 
 
 logging.basicConfig(level=logging.DEBUG, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
 logger = logging.getLogger()
 logger.setLevel(logging.DEBUG)
+
+client_db = Client()
 
 
 def get_api():
@@ -42,7 +45,7 @@ def load_all_vk_data(init_load=True, max_count=100, default_offset=0):
                     )
                     offset += 100
                     data_all.extend(data['items'])
-                    print(f'data_all_test count: {len(data_all)}')
+                    print(f'data_all count: {len(data_all)}')
                     if len(data_all) > max_count:
                         break
 
@@ -57,18 +60,35 @@ def load_all_vk_data(init_load=True, max_count=100, default_offset=0):
         res.append(
             {
                 'source': club,
-                'data': data['items'],
+                'data': data_all,
             }
         )
 
     return res
 
 
-def get_club_info():
-    vk_api = get_api()
-    return vk_api.groups.getById(group_id='foodptz')
+def load_to_file():
+    data = load_all_vk_data(max_count=30000)
+    filename = os.path.join(os.path.dirname(__file__), 'vk_clubs_data', 'sharingfood.json')
+    with open(filename, 'w') as f:
+        logger.info(f'save data from {filename} ..')
+        json.dump(data, f, ensure_ascii=False)
+
+
+def init_db(from_vk=True):
+    filename = os.path.join(os.path.dirname(__file__), 'vk_clubs_data', 'sharingfood.json')
+    if from_vk:
+        data = load_all_vk_data()
+    else:
+        with open(filename) as f:
+            data = json.load(f)
+            for i in data:
+                logger.info(f'insert into db')
+                client_db.write_to_hakaton_db(collection='posts', data=i['data'])
+                # for j in i['data']:
+                #     client_db.write_to_hakaton_db(collection='posts', data=j)
 
 
 if __name__ == '__main__':
-    data = load_all_vk_data()
-    print(data)
+    init_db(from_vk=False)
+    # load_to_file()
