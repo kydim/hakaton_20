@@ -40,6 +40,21 @@ def get_all_metro_stations_names(metro_stations_json=None):
     return names
 
 
+def get_all_cities(metro_stations_json=None):
+    if metro_stations_json is None:
+        response = requests.get('https://api.hh.ru/metro')
+        metro_stations_json = json.loads(response.content)
+    return [city['name'] for city in metro_stations_json]
+
+
+def get_city_from_text(text):
+    found_cities = list(filter(lambda x: x.lower() in text.lower(), cities))
+    if len(found_cities) >= 1:
+        return found_cities[0]
+    else:
+        return None
+
+
 def get_all_metro_stations(metro_stations_json=None):
     if metro_stations_json is None:
         response = requests.get('https://api.hh.ru/metro')
