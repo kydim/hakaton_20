@@ -1,13 +1,32 @@
 from enum import Enum
 import logging
 import requests
-
+import json
+import os
+from parser import extractor
+from random import shuffle
 
 logging.basicConfig(level=logging.DEBUG, format='%(asctime)s - %(name)s - %(funcName)10s- %(levelname)s - %(message)s')
 logger = logging.getLogger()
 logger.setLevel(logging.DEBUG)
 
 URL = 'http://localhost:5555/'
+
+
+def get_model_result():
+    filename = os.path.join('model_result', 'prediction.json')
+    with open(filename) as f:
+        data = json.load(f)
+
+    for i in data:
+        i['text'] = ''
+
+    res = [i for i in data if i['label'] is not None]
+
+    return res
+
+
+MODEL_RESULT = get_model_result()
 
 
 class Status(Enum):
@@ -43,6 +62,17 @@ class Client:
     @property
     def data(self):
         return dict(self.__dict__.items())
+
+    def get_result(self):
+        res_all = [i['url'] for i in MODEL_RESULT if i['label'] == self.search_good.lower()]
+        logger.info(f'len(res)= {len(res_all)}')
+        res = res_all[:5]
+        shuffle(res)
+        if res:
+            res_str = ', '.join(res)
+            return f'Нашлось! Приятного аппетитиа! {res_str}'
+        else:
+            return 'Увы, ничего поблизости нет'
 
 
 test_client = Client(None)
@@ -83,5 +113,22 @@ def update_state(chat_id, status, bot_text=None, user_query=None):
     return test_client
 
 
-def find_result(text):
-    pass
+def get_result():
+    return test_client.get_result()
+
+
+def get_nearest_station():
+    nearest = extractor.get_nearest_stations_from_text(
+        test_client.search_station, "Москва", threshold=0.06
+    )
+    if nearest:
+        result = [i['name'] for i in nearest][:5]
+    else:
+        result = ''
+    res_str = ', '.join(result)
+    return f'Ближайшие станции метро: {res_str}'
+
+    # n_stations = extractor.get_nearest_stations(test_client.search_station)
+    # s_stations = ', '.join(n_stations)
+    # result = f'Ближайшие станции {s_stations}'
+    # return result

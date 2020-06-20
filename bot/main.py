@@ -12,6 +12,7 @@ from telegram.ext import (
 )
 from bot import api
 from bot.bot_config import GOODS
+from random import randint
 
 logging.basicConfig(level=logging.DEBUG, format='%(asctime)s - %(name)s - %(funcName)10s- %(levelname)s - %(message)s')
 logger = logging.getLogger()
@@ -87,7 +88,7 @@ def message(update, context):
             user_query=update.message.text,
         )
 
-        new_job = context.job_queue.run_repeating(alarm, 1, context=update.effective_chat.id)
+        new_job = context.job_queue.run_repeating(alarm, randint(0, 3), context=update.effective_chat.id)
         context.chat_data['job'] = new_job
         update.message.reply_text(responce.bot_text)
 
@@ -131,13 +132,13 @@ def alarm(context):
     """Send the alarm message."""
     job = context.job
     if TEST_CNT == 0:
-        text = 'Ищем вкуснейшую еду ..'
+        text = api.get_nearest_station()
     else:
         text = 'Еще немного терпения ...'
 
     if TEST_CNT > 1:
         job.schedule_removal()
-        text = 'Нашлось! Приятного аппетитиа! <ссылка>'
+        text = api.get_result()
         api.reset()
 
     context.bot.send_message(job.context, text=text)
