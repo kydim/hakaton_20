@@ -8,6 +8,10 @@ from corextopic import corextopic as ct
 import pickle
 import utils_model
 import pymorphy2
+import nltk
+nltk.download("stopwords")
+
+from nltk.corpus import stopwords
 
 
 MAPPING = {
@@ -28,9 +32,11 @@ def load_data(path):
 
 if __name__ == "__main__":
     #path to the file directory
-    src = "/content/drive/My Drive/vk_clubs_data"
+    path_pickle_src = './pickle'
+    src = "./data"
     file_name = 'sharingfood.json'
     data = load_data(os.path.join(src, file_name))
+    print(data)
     morph = pymorphy2.MorphAnalyzer()
     prep_pipeline = Pipeline([
         ('lowercase', utils_model.Lowercaser()),
@@ -39,20 +45,32 @@ if __name__ == "__main__":
         ('remove_non_characters', utils_model.RegexTransformer("\W+", " ")),
         ('remove_stop_words', utils_model.StopWordsRemover(corpus=stopwords.words('russian'))),
         ('remove_digits', utils_model.RegexTransformer("[0-9_]", "")),
-                     ('lemmatization', Lemmatizer(morph, stemmer=SnowballStemmer("russian")))
+                     ('lemmatization', utils_model.Lemmatizer(morph, stemmer=SnowballStemmer("russian")))
     ])
     #just for inicialization
+    print('clear data')
     prep_pipeline.fit(data[0])
     prep_txt = [prep_pipeline.transform(i) for i in data]
     
+    if not os.path.exists(path_pickle_src):
+        os.makedirs(directory)
+    
+    with open(os.path.join(path_pickle_src, 'prep_pipeline.pickle'), 'wb') as f:
+        pickle.dump(prep_pipeline, f)
+    
     #feature inginiring
+    print('processing data')
     words = set([j for i in prep_txt for j in i.split()])
     vocabulary = list(words)
     pipe = Pipeline([('count', CountVectorizer(vocabulary=vocabulary)),
                      ('tfid', TfidfTransformer())]).fit(prep_txt)
     features = pipe.transform(prep_txt)
+
+    with open(os.path.join(path_pickle_src, 'feature_pipeline.pickle'), 'wb') as f:
+    	pickle.dump(pipe, f)
     
     #Init anchors for classes
+    
     first_gr = [prep_pipeline.transform(i) for i in ['овощи', 'фрукты', 'бананы', 'огурцы']]
     second_gr = [prep_pipeline.transform(i) for i in ['хлеб']]
     third_gr = [prep_pipeline.transform(i) for i in ['хороший', 'конкурс']]
@@ -63,9 +81,19 @@ if __name__ == "__main__":
     anchor_words = [first_gr, second_gr, third_gr, fourth_gr, fith_gr, sixth_gr, seven_gr]
     
     #fit model
+    print('fit model')
     anchored_topic_model = ct.Corex(n_hidden=10, seed=2, max_iter=1000, eps=1e-3)
     anchored_topic_model.fit(features, words=vocabulary, anchors=anchor_words, anchor_strength=10)
+    print('model fitting is complited')
+    with open(os.path.join(path_pickle_src, 'model.pickle'), 'wb') as f:
+    	pickle.dump(anchored_topic_model, f)
     
+    print('example')
+    ex_txt = ['М. Лесная\nНемного уставшие овощи, может, кому-то нужны \nЖду Вас']
+    processed_txt = [prep_pipeline.transform(i) for i in ex_txt]
+    ex_features = pipe.transform(processed_txt)
+    predict = anchored_topic_model.predict_proba(ex_features)[0].argmax(1)
+    print([(MAPPING.get(pr), t) for pr, t in zip(predict, ex_txt)])
     
     
     
