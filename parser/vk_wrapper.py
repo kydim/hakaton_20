@@ -16,23 +16,22 @@ logger = logging.getLogger()
 logger.setLevel(logging.DEBUG)
 
 
-
 def get_api():
     session = vk.Session(access_token=VK_TOKEN)
     vk_api_v = VK_API_VERSION or 5.21
     return vk.API(session, v=vk_api_v)
 
 
-def load_all_vk_data(init_load=True, max_count=1000):
+def load_all_vk_data(init_load=True, max_count=100, default_offset=0):
     vk_api = get_api()
     res = []
 
     for club in VK_CLUBS:
-        offset = 0
+        offset = default_offset
         logger.info(f'get data from {club}')
         try_count = 0
 
-        data_all_test = []
+        data_all = []
         while True:
             try:
                 if init_load:
@@ -41,9 +40,10 @@ def load_all_vk_data(init_load=True, max_count=1000):
                         count=100,
                         offset=offset,
                     )
-                    offset += 1
-                    print(f'data_all_test count: {len(data_all_test)}')
-                    if len(data_all_test) > max_count:
+                    offset += 100
+                    data_all.extend(data['items'])
+                    print(f'data_all_test count: {len(data_all)}')
+                    if len(data_all) > max_count:
                         break
 
             except VkAPIError as e:
