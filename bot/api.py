@@ -14,14 +14,17 @@ URL = 'http://localhost:5555/'
 
 
 def get_model_result():
-    filename = os.path.join('model_result', 'prediction.json')
+    filename = os.path.join('model_result', 'sharingfood_labeled.json')
     with open(filename) as f:
         data = json.load(f)
 
     for i in data:
         i['text'] = ''
 
-    res = [i for i in data if i['label'] is not None]
+    res = [
+        i for i in data
+        if i.get('label') is not None and i.get('station') is not None
+    ]
 
     return res
 
@@ -64,7 +67,11 @@ class Client:
         return dict(self.__dict__.items())
 
     def get_result(self):
-        res_all = [i['url'] for i in MODEL_RESULT if i['label'] == self.search_good.lower()]
+        res_all = [
+            i['url'] for i in MODEL_RESULT
+            if i['label'] == self.search_good.lower()
+               and i['station']['name'].lower() == self.search_station.lower()
+        ]
         logger.info(f'len(res)= {len(res_all)}')
         res = res_all[:5]
         shuffle(res)
