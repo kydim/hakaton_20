@@ -44,6 +44,10 @@ def get_all_metro_stations(metro_stations_json=None):
     if metro_stations_json is None:
         response = requests.get('https://api.hh.ru/metro')
         metro_stations_json = json.loads(response.content)
+    for city in metro_stations_json:
+        for line in city['lines']:
+            for station in line['stations']:
+                station['city'] = city['name']
     lines = [city['lines'] for city in metro_stations_json]
     lines = flatten_array(lines)
     stations = [line['stations'] for line in lines]
