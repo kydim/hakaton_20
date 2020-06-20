@@ -51,7 +51,7 @@ def get_all_metro_stations(metro_stations_json=None):
     return stations
 
 
-def get_nearest_stations(station, threshold=0.06, metro_stations_json=None):
+def get_nearest_stations(station, threshold = 0.06, metro_stations_json=None):
     nearest = []
     all_stations = get_all_metro_stations(metro_stations_json)
     for current_station in all_stations:
@@ -60,7 +60,7 @@ def get_nearest_stations(station, threshold=0.06, metro_stations_json=None):
     return nearest
 
 
-def get_metro_stations_from_text(text, city=None, single=False):
+def get_metro_stations_from_text(text, city=None, single=False, metro_stations_json=None):
     found_stations = []
     metro_stations = get_all_metro_stations(metro_stations_json)
     for station in metro_stations:
@@ -69,10 +69,26 @@ def get_metro_stations_from_text(text, city=None, single=False):
     if city is not None:
         found_stations = list(filter(lambda x: city.lower() in x['city'].lower(), found_stations))
     if single == True:
-        if len(found_stations) > 1:
-            found_stations = found_stations[:1]
+        if len(found_stations) >= 1:
+            found_stations = found_stations[0]
+        else:
+            found_stations = None
     return found_stations
 
+
+def get_nearest_stations_from_text(station, city, threshold = 0.06, metro_stations_json=None):
+    station = get_metro_stations_from_text(station, city, single=True, metro_stations_json=metro_stations_json)
+    print(station)
+    if station is not None:
+        nearest = []
+        all_stations = get_all_metro_stations(metro_stations_json)
+        for current_station in all_stations:
+            if get_distance(current_station, station) < threshold:
+                nearest.append(current_station)
+        return nearest
+    else:
+        return []
+        
 
 def get_distance(one, two):
     return sqrt((one['lat'] - two['lat']) ** 2 + (one['lng'] - two['lng']) ** 2)
