@@ -82,8 +82,8 @@ def translate_to_russian(text):
     return result.text
 
 
-def classify_image_ibm(image_url):
-    authenticator = IAMAuthenticator('F5XxyX-ggANh3Z7wtF8ePWcDeFJSpZy0wtRdQL5GACek')
+def classify_image_ibm(image_url, api_key):
+    authenticator = IAMAuthenticator(api_key)
     visual_recognition = VisualRecognitionV3(
         version='2018-03-19',
         authenticator=authenticator
