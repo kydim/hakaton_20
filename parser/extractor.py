@@ -84,11 +84,7 @@ def translate_to_russian(text):
 
 def classify_image_ibm(image_url, api_key):
     authenticator = IAMAuthenticator(api_key)
-    visual_recognition = VisualRecognitionV3(
-        version='2018-03-19',
-        authenticator=authenticator
-    )
-
+    visual_recognition = VisualRecognitionV3(version='2018-03-19', authenticator=authenticator)
     visual_recognition.set_service_url('https://api.us-south.visual-recognition.watson.cloud.ibm.com/instances/19c39c90-9b57-4ca0-b98a-43591ff8241f')
 
     result = visual_recognition.classify(url=image_url, classifier_ids=['food']).get_result()
@@ -100,8 +96,12 @@ def classify_image_ibm(image_url, api_key):
         result = visual_recognition.classify(url=image_url).get_result()
         classes = result['images'][0]['classifiers'][0]['classes']
         #print(classes)
+        classes = list(filter(lambda x: 'color' not in x['class'], classes))
         newlist = sorted(classes, key=lambda x: x['score'], reverse=True)
-        one_class = newlist[0]['class']
+        if len(newlist) > 0:
+            one_class = newlist[0]['class']
+        else:
+            return None
     
     return translate_to_russian(one_class)
 
