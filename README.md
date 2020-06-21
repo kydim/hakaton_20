@@ -1,19 +1,38 @@
 # Hakaton_20
+# Чат-ботов для поиска объявлений в социальных сетях
 ### Система рекомендаций, позволяющая связать продавца и покупателя. 
 Реализована в виде чат-бота.  Позволяет сократить время поиска необходимого товара.
 Предложения строятся на основе машинного анализа текстов и изображений.
 
-## Install 
+#Основные используемые библиотеки
+## LDA, NLTK, Watson IBM, Corextopic, Pymorphy2
+
+# Используемые сторонние API
+## hh.ru api, vk_api, google translate, spar api
+
+## Установка 
 `pip install -r requirements.txt`
 
-## Run telegram-bot
+## Запуск telegram-bot
+### Необходимо положить token бота в BOT_TOKEN в config.py (токен по умолчанию для HungryBot)
+В текущей реализации используется токен использутся для бота HungryBot
+Данное MVP - однопользовательсякая версия
+
+# Запуск телеграм-бота
 `python bot/main.py`
 
+# Применение
+1) Написать боту **/start**
+2) Ввести станцию метро
+3) Выбрать категорию продуктов
+4) Бот предложит подходящие Вам посты с ссылкой на VK
 
-## Run vk_parser
-#### Need Token VK API
-`python bot/main.py`
+Демонстрация
+![Пример](https://yadi.sk/i/QCLi318gX0IoBQ)
 
+## Извдечение информации с постов VK из группы foodsharing 
+### Нужен токен VK API в config.py
+`parser/vk_wrapper.py`
 
-## Run server (futures)
-`python server/main.py`
+##Примеры распознования тескстов в модели
+`python test_model.py`

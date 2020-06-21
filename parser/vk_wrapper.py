@@ -85,10 +85,7 @@ def init_db(from_vk=True):
             for i in data:
                 logger.info(f'insert into db')
                 client_db.write_to_hakaton_db(collection='posts', data=i['data'])
-                # for j in i['data']:
-                #     client_db.write_to_hakaton_db(collection='posts', data=j)
 
 
 if __name__ == '__main__':
-    init_db(from_vk=False)
-    # load_to_file()
+    load_to_file()
