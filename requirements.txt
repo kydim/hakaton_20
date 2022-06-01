@@ -27,7 +27,7 @@ h2==3.2.0
 hpack==3.0.0
 hstspreload==2020.6.16
 httpcore==0.9.1
-httpx==0.13.3
+httpx==0.23.0
 hyperframe==5.2.0
 ibm-cloud-sdk-core==1.5.1
 ibm-watson==4.5.0
